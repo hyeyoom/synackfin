@@ -2,7 +2,7 @@ import { dummyArticles } from '@/data/dummyArticles';
 
 export default function Home() {
   return (
-    <main className="max-w-4xl mx-auto px-4 py-8">
+    <main className="max-w-6xl mx-auto px-4 py-8">
       <div className="space-y-2">
         {dummyArticles.map((article, index) => (
           <article key={article.id} className="flex gap-2">
