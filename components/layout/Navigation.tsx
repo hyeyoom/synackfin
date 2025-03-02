@@ -1,12 +1,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ModeToggle } from '@/components/mode-toggle';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+
 
 export default function Navigation() {
   return (
