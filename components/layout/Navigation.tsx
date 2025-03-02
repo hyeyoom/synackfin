@@ -11,7 +11,7 @@ export default function Navigation() {
       <div className="max-w-6xl mx-auto px-4 h-12 flex items-center justify-between">
         <div className="flex items-center gap-6">
           <Link href="/" className="text-emerald-700 dark:text-emerald-500 font-bold">
-            EN
+            eng.center
           </Link>
           <div className="flex items-center gap-4 text-sm">
             <Link href="/articles" className="text-muted-foreground hover:text-foreground">
@@ -25,7 +25,7 @@ export default function Navigation() {
             </Link>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-2">
           <ModeToggle />
           <Button variant="outline" size="sm" asChild>
@@ -35,4 +35,4 @@ export default function Navigation() {
       </div>
     </nav>
   );
-} 
+}

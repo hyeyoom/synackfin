@@ -7,4 +7,5 @@ export interface Article {
   createdAt: string;
   commentCount: number;
   domain?: string;
+  summary?: string;
 } 
