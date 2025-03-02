@@ -9,6 +9,9 @@ export default function Home() {
             <span className="text-gray-500 w-6">{index + 1}.</span>
             <div className="flex flex-col">
               <div className="flex items-baseline gap-2">
+                <button className="text-gray-400 hover:text-emerald-500 mr-1">
+                  ▲
+                </button>
                 <a 
                   href={article.url}
                   className="text-[15px] hover:underline"
@@ -23,7 +26,7 @@ export default function Home() {
                   </span>
                 )}
               </div>
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-gray-500 ml-5">
                 {article.points} points by {article.author} {article.createdAt} | {article.commentCount} comments
               </div>
             </div>
