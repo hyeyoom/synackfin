@@ -27,10 +27,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100`}>
-        <ThemeProvider>
-          <Navigation />
-          {children}
+      <body className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-background font-sans antialiased`}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+        >
+          <div className="relative flex min-h-screen flex-col">
+            <Navigation />
+            <main className="flex-1">{children}</main>
+          </div>
         </ThemeProvider>
       </body>
     </html>
