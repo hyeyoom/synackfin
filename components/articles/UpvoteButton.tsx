@@ -81,18 +81,25 @@ export default function UpvoteButton({ articleId, initialPoints, className = '' 
     }
   };
 
+  // 포인트가 있으면 버튼도 초록색으로 하이라이트
+  const buttonColorClass = points > 0 
+    ? 'text-emerald-500 hover:text-emerald-600' 
+    : 'text-gray-500 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20';
+
   return (
     <div className={`flex flex-col items-center ${className}`}>
       <button
         id={`upvote-btn-${articleId}`}
         onClick={handleUpvote}
         disabled={isLoading}
-        className="flex items-center justify-center w-8 h-8 rounded-md transition-colors text-gray-500 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+        className={`flex items-center justify-center w-8 h-8 rounded-md transition-colors ${buttonColorClass}`}
         aria-label="글 추천하기"
       >
         ▲
       </button>
-      <span className="text-xs font-medium">{points}</span>
+      <span className={`text-xs font-medium ${points > 0 ? 'text-emerald-500' : ''}`}>
+        {points}
+      </span>
       
       {/* 에러 다이얼로그 */}
       {showDialog && error && (
