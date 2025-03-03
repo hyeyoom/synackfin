@@ -114,11 +114,14 @@ export default function Home() {
                                 ref={index === articles.length - 1 ? lastArticleRef : null}
                                 className="flex gap-4 p-3 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800/50"
                             >
-                                <UpvoteButton
-                                    articleId={article.id}
-                                    initialPoints={article.points}
-                                    className="mt-1"
-                                />
+                                <div className="flex flex-col items-center mr-1 w-6">
+                                    <span className="text-gray-500 text-sm">{article.id}.</span>
+                                    <UpvoteButton
+                                        articleId={article.id}
+                                        initialPoints={article.points}
+                                        className="mt-1"
+                                    />
+                                </div>
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-baseline">
                                         <h2 className="text-lg font-medium">
@@ -149,10 +152,11 @@ export default function Home() {
                                         )}
                                     </div>
 
-                                    <div className="flex items-center mt-1 ml-1">
+                                    <div className="flex items-center mt-1">
                                         <Link href={`/articles/${article.id}`} className="flex items-center w-full">
                                             <div
-                                                className="text-sm text-gray-600 dark:text-gray-400 overflow-hidden whitespace-nowrap text-ellipsis max-w-[calc(100%-80px)] hover:underline">
+                                                className="text-sm text-gray-600 dark:text-gray-400 overflow-hidden whitespace-nowrap text-ellipsis max-w-[calc(100%-80px)] hover:underline"
+                                            >
                                                 - {article.summary}
                                             </div>
                                             <span
@@ -163,7 +167,7 @@ export default function Home() {
                                         </Link>
                                     </div>
 
-                                    <div className="text-xs text-gray-500 ml-1 mt-1">
+                                    <div className="text-xs text-gray-500 mt-1">
                                         {article.points} points
                                         by {article.author} | {createdAt} | {article.commentCount} comments
                                     </div>
