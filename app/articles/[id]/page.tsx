@@ -11,6 +11,7 @@ import rehypeHighlight from 'rehype-highlight';
 import 'highlight.js/styles/github-dark.css';
 import {Metadata} from 'next';
 import CommentSection from '@/components/comments/CommentSection';
+import { Suspense } from 'react';
 
 interface Props {
     params: {
@@ -73,19 +74,25 @@ export default async function ArticlePage({params}: Props) {
         .single();
 
     if (error || !article) {
-        notFound();
+        return (
+            <main className="max-w-6xl mx-auto px-4 py-8">
+                <div className="mb-4">
+                    <Link href="/" className="text-sm text-emerald-600 dark:text-emerald-400 hover:underline">
+                        ← 홈으로 돌아가기
+                    </Link>
+                </div>
+                <div className="bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 p-4 rounded-md">
+                    글을 찾을 수 없습니다.
+                </div>
+            </main>
+        );
     }
 
-    // 작성자 정보 처리
     const authorName = article.user_profiles?.name || `사용자 ${article.author_id.substring(0, 8)}`;
-
-    // 날짜 포맷팅
     const createdAt = formatDistanceToNow(new Date(article.created_at), {
         addSuffix: true,
         locale: ko
     });
-
-    // 도메인 추출
     const domain = article.url ? extractDomain(article.url) : null;
 
     return (
@@ -98,13 +105,13 @@ export default async function ArticlePage({params}: Props) {
 
             <article>
                 <h1 className="text-3xl font-bold mb-2">{article.title}</h1>
-
+                
                 <div className="flex items-center gap-1 text-sm text-gray-500 mb-4">
                     <span>{authorName}</span>
                     <span>•</span>
-                    <span>{createdAt}</span>
+                    <span className="text-emerald-500 font-medium">{article.points} points</span>
                     <span>•</span>
-                    <span>{article.points} points</span>
+                    <span>{createdAt}</span>
                     {article.url && (
                         <>
                             <span>•</span>
@@ -119,7 +126,7 @@ export default async function ArticlePage({params}: Props) {
                         </>
                     )}
                 </div>
-
+                
                 <div className="prose dark:prose-invert prose-sm max-w-none my-4">
                     <ReactMarkdown
                         remarkPlugins={[remarkGfm]}
@@ -129,7 +136,9 @@ export default async function ArticlePage({params}: Props) {
                     </ReactMarkdown>
                 </div>
 
-                <CommentSection articleId={article.id} />
+                <Suspense fallback={<div>댓글을 불러오는 중...</div>}>
+                    <CommentSection articleId={article.id} />
+                </Suspense>
             </article>
         </main>
     );

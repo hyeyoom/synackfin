@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { upvoteArticle } from '@/lib/actions/article-actions';
 import { createSupabaseClientForBrowser } from '@/lib/utils/supabase/client';
 import { useRouter } from 'next/navigation';
+import { mutate } from 'swr';
 
 interface UpvoteButtonProps {
   articleId: number;
@@ -84,6 +85,13 @@ export default function UpvoteButton({ articleId, initialPoints, className = '' 
 
       if (result.points) {
         setPoints(result.points);
+        
+        // SWR 캐시 업데이트
+        mutate(
+          (key) => typeof key === 'string' && key.startsWith('/api/articles'),
+          undefined,
+          { revalidate: true }
+        );
       }
       
       setHasVoted(true);
