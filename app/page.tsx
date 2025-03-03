@@ -122,9 +122,23 @@ export default function Home() {
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-baseline">
                                         <h2 className="text-lg font-medium">
-                                            <Link href={`/articles/${article.id}`} className="hover:text-emerald-600 dark:hover:text-emerald-400">
-                                                {article.title}
-                                            </Link>
+                                            {article.url ? (
+                                                <a 
+                                                    href={article.url} 
+                                                    target="_blank" 
+                                                    rel="noopener noreferrer" 
+                                                    className="hover:text-emerald-600 dark:hover:text-emerald-400"
+                                                >
+                                                    {article.title}
+                                                </a>
+                                            ) : (
+                                                <Link 
+                                                    href={`/articles/${article.id}`} 
+                                                    className="hover:text-emerald-600 dark:hover:text-emerald-400"
+                                                >
+                                                    {article.title}
+                                                </Link>
+                                            )}
                                         </h2>
                                         {article.domain && (
                                             <span className="ml-2 text-xs text-gray-500">
