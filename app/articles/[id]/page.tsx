@@ -104,8 +104,8 @@ export default async function ArticlePage({params}: Props) {
                 </Link>
             </div>
 
-            <article className="prose dark:prose-invert lg:prose-lg max-w-none">
-                <h1>{article.title}</h1>
+            <article>
+                <h1 className="text-3xl font-bold mb-4">{article.title}</h1>
 
                 <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
                     <span>{authorName}</span>
@@ -128,7 +128,7 @@ export default async function ArticlePage({params}: Props) {
                     )}
                 </div>
 
-                <div className="my-6">
+                <div className="prose dark:prose-invert prose-sm max-w-none my-6">
                     <ReactMarkdown
                         remarkPlugins={[remarkGfm]}
                         rehypePlugins={[rehypeRaw, rehypeHighlight]}
@@ -139,14 +139,8 @@ export default async function ArticlePage({params}: Props) {
 
                 <div className="my-8">
                     <h2 className="text-xl font-medium mb-4">댓글 ({article.comment_count || 0})</h2>
-                    <div className="p-6 bg-gray-50 dark:bg-gray-800 rounded-md text-center">
-                        <p className="text-gray-500">댓글을 보려면 로그인이 필요합니다.</p>
-                        <Link
-                            href="/login"
-                            className="mt-2 inline-block px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700"
-                        >
-                            로그인하기
-                        </Link>
+                    <div className="p-6 bg-gray-50 dark:bg-gray-800 rounded-md">
+                        <p className="text-gray-500 text-center">아직 댓글이 없습니다. 첫 댓글을 작성해보세요.</p>
                     </div>
                 </div>
             </article>
