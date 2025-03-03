@@ -20,13 +20,13 @@ export default function Home() {
     const lastArticleRef = useCallback((node: HTMLElement | null) => {
         if (isLoading) return;
         if (observer.current) observer.current.disconnect();
-        
+
         observer.current = new IntersectionObserver(entries => {
             if (entries[0].isIntersecting && hasMore) {
                 setPage(prevPage => prevPage + 1);
             }
         });
-        
+
         if (node) observer.current.observe(node);
     }, [isLoading, hasMore]);
 
@@ -34,14 +34,14 @@ export default function Home() {
         try {
             setIsLoading(true);
             const supabase = createSupabaseClientForBrowser();
-            
+
             // 1주일 전 날짜 계산
             const oneWeekAgo = new Date();
             oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-            
+
             const from = pageNum * ITEMS_PER_PAGE;
             const to = from + ITEMS_PER_PAGE - 1;
-            
+
             const { data, error } = await supabase
                 .from('user_articles')
                 .select(`
@@ -53,15 +53,15 @@ export default function Home() {
                 .order('points', { ascending: false })
                 .order('created_at', { ascending: false })
                 .range(from, to);
-                
+
             if (error) {
                 throw new Error(error.message);
             }
-            
+
             if (data.length < ITEMS_PER_PAGE) {
                 setHasMore(false);
             }
-            
+
             setArticles(prev => pageNum === 0 ? data : [...prev, ...data]);
         } catch (err) {
             console.error('글 목록을 가져오는 중 오류가 발생했습니다:', err);
@@ -100,7 +100,7 @@ export default function Home() {
                         });
 
                         const authorName = article.user_profiles?.name || `사용자 ${article.author_id.substring(0, 8)}`;
-                        
+
                         // 마크다운 제거
                         const plainContent = article.content ? stripMarkdown(article.content).substring(0, 100) : "본문이 없습니다.";
 
@@ -108,8 +108,8 @@ export default function Home() {
                         const isLastItem = index === articles.length - 1;
 
                         return (
-                            <article 
-                                key={article.id} 
+                            <article
+                                key={article.id}
                                 className="flex gap-2"
                                 ref={isLastItem ? lastArticleRef : null}
                             >
@@ -130,7 +130,7 @@ export default function Home() {
                                         )}
                                     </div>
 
-                                    <div className="flex items-center mt-1 ml-5">
+                                    <div className="flex items-center mt-1 ml-1">
                                         <Link href={`/articles/${article.id}`} className="flex items-center w-full">
                                             <div
                                                 className="text-sm text-gray-600 dark:text-gray-400 overflow-hidden whitespace-nowrap text-ellipsis max-w-[calc(100%-80px)] hover:underline">
@@ -144,7 +144,7 @@ export default function Home() {
                                         </Link>
                                     </div>
 
-                                    <div className="text-xs text-gray-500 ml-5 mt-1">
+                                    <div className="text-xs text-gray-500 ml-1 mt-1">
                                         {article.points} points
                                         by {authorName} | {createdAt} | {article.comment_count || 0} comments
                                     </div>
@@ -176,7 +176,7 @@ export default function Home() {
                         </Link>
                     </div>
                 )}
-                
+
                 {isLoading && articles.length > 0 && (
                     <div className="flex justify-center py-4">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>

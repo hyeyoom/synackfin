@@ -24,7 +24,7 @@ export const revalidate = 60; // 60초마다 재검증
 export async function generateMetadata({params}: Props): Promise<Metadata> {
     const id = parseInt(params.id);
     const supabase = await createSupabaseClientForServer();
-    
+
     // 실제 데이터 가져오기
     const { data: article, error } = await supabase
         .from('user_articles')
@@ -34,7 +34,7 @@ export async function generateMetadata({params}: Props): Promise<Metadata> {
         `)
         .eq('id', id)
         .single();
-    
+
     if (error || !article) {
         return {
             title: '아티클을 찾을 수 없습니다 - 엔지니어링 뉴스',
@@ -44,13 +44,13 @@ export async function generateMetadata({params}: Props): Promise<Metadata> {
 
     // 작성자 정보 처리
     const authorName = article.user_profiles?.name || `사용자 ${article.author_id.substring(0, 8)}`;
-    
+
     // 날짜 포맷팅
     const createdAt = formatDistanceToNow(new Date(article.created_at), {
         addSuffix: true,
         locale: ko
     });
-    
+
     // 도메인 추출
     const domain = article.url ? extractDomain(article.url) : null;
 
@@ -70,7 +70,7 @@ export async function generateMetadata({params}: Props): Promise<Metadata> {
 export default async function ArticlePage({params}: Props) {
     const id = parseInt(params.id);
     const supabase = await createSupabaseClientForServer();
-    
+
     // 실제 데이터 가져오기
     const { data: article, error } = await supabase
         .from('user_articles')
@@ -80,35 +80,35 @@ export default async function ArticlePage({params}: Props) {
         `)
         .eq('id', id)
         .single();
-    
+
     if (error || !article) {
         notFound();
     }
-    
+
     // 작성자 정보 처리
     const authorName = article.user_profiles?.name || `사용자 ${article.author_id.substring(0, 8)}`;
-    
+
     // 날짜 포맷팅
     const createdAt = formatDistanceToNow(new Date(article.created_at), {
         addSuffix: true,
         locale: ko
     });
-    
+
     // 도메인 추출
     const domain = article.url ? extractDomain(article.url) : null;
 
     return (
         <main className="max-w-6xl mx-auto px-4 py-8">
-            <div className="mb-6">
+            <div className="mb-4">
                 <Link href="/" className="text-sm text-emerald-600 dark:text-emerald-400 hover:underline">
                     ← 홈으로 돌아가기
                 </Link>
             </div>
 
             <article>
-                <h1 className="text-3xl font-bold mb-4">{article.title}</h1>
+                <h1 className="text-3xl font-bold mb-2">{article.title}</h1>
 
-                <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
+                <div className="flex items-center gap-1 text-sm text-gray-500 mb-4">
                     <span>{authorName}</span>
                     <span>•</span>
                     <span>{createdAt}</span>
@@ -129,7 +129,7 @@ export default async function ArticlePage({params}: Props) {
                     )}
                 </div>
 
-                <div className="prose dark:prose-invert prose-sm max-w-none my-6">
+                <div className="prose dark:prose-invert prose-sm max-w-none my-4">
                     <ReactMarkdown
                         remarkPlugins={[remarkGfm]}
                         rehypePlugins={[rehypeRaw, rehypeHighlight]}
