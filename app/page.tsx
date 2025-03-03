@@ -1,43 +1,95 @@
+'use client';
+
+import { useEffect, useState, useRef, useCallback } from 'react';
 import Link from 'next/link';
-import {createSupabaseClientForServer} from '@/lib/utils/supabase/server';
-import {formatDistanceToNow} from 'date-fns';
-import {ko} from 'date-fns/locale';
-import {extractDomain} from '@/lib/utils/url';
-import {stripMarkdown} from '@/lib/utils/markdown';
+import { createSupabaseClientForBrowser } from '@/lib/utils/supabase/client';
+import { formatDistanceToNow } from 'date-fns';
+import { ko } from 'date-fns/locale';
+import { extractDomain } from '@/lib/utils/url';
+import { stripMarkdown } from '@/lib/utils/markdown';
 
-// 캐싱 설정
-export const revalidate = 60; // 60초마다 재검증
+const ITEMS_PER_PAGE = 10;
 
-export default async function Home() {
-    const supabase = await createSupabaseClientForServer();
+export default function Home() {
+    const [articles, setArticles] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [hasMore, setHasMore] = useState(true);
+    const [page, setPage] = useState(0);
+    const observer = useRef<IntersectionObserver | null>(null);
+    const lastArticleRef = useCallback((node: HTMLElement | null) => {
+        if (isLoading) return;
+        if (observer.current) observer.current.disconnect();
+        
+        observer.current = new IntersectionObserver(entries => {
+            if (entries[0].isIntersecting && hasMore) {
+                setPage(prevPage => prevPage + 1);
+            }
+        });
+        
+        if (node) observer.current.observe(node);
+    }, [isLoading, hasMore]);
 
-    // 1주일 전 날짜 계산
-    const oneWeekAgo = new Date();
-    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    const fetchArticles = useCallback(async (pageNum: number) => {
+        try {
+            setIsLoading(true);
+            const supabase = createSupabaseClientForBrowser();
+            
+            // 1주일 전 날짜 계산
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+            
+            const from = pageNum * ITEMS_PER_PAGE;
+            const to = from + ITEMS_PER_PAGE - 1;
+            
+            const { data, error } = await supabase
+                .from('user_articles')
+                .select(`
+                    *,
+                    user_profiles!user_articles_author_id_fkey(name)
+                `)
+                .eq('board_type', 'articles')
+                .gte('created_at', oneWeekAgo.toISOString())
+                .order('points', { ascending: false })
+                .order('created_at', { ascending: false })
+                .range(from, to);
+                
+            if (error) {
+                throw new Error(error.message);
+            }
+            
+            if (data.length < ITEMS_PER_PAGE) {
+                setHasMore(false);
+            }
+            
+            setArticles(prev => pageNum === 0 ? data : [...prev, ...data]);
+        } catch (err) {
+            console.error('글 목록을 가져오는 중 오류가 발생했습니다:', err);
+            setError('글 목록을 가져오는 중 오류가 발생했습니다.');
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
 
-    // 서버에서 데이터 가져오기 - articles 타입, 1주일 내, upvote 높은 순
-    const {data: articles, error} = await supabase
-        .from('user_articles')
-        .select(`
-            *,
-            user_profiles!user_articles_author_id_fkey(name)
-        `)
-        .eq('board_type', 'articles')
-        .gte('created_at', oneWeekAgo.toISOString())
-        .order('points', {ascending: false})
-        .order('created_at', {ascending: false}) // 같은 points면 최신순으로
-        .limit(30);
+    useEffect(() => {
+        fetchArticles(page);
+    }, [fetchArticles, page]);
 
-    // 에러가 있거나 데이터가 없으면 빈 배열 사용
-    const displayArticles = error || !articles || articles.length === 0
-        ? []
-        : articles;
+    if (error) {
+        return (
+            <main className="max-w-6xl mx-auto px-4 py-8">
+                <div className="bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 p-4 rounded-md">
+                    {error}
+                </div>
+            </main>
+        );
+    }
 
     return (
         <main className="max-w-6xl mx-auto px-4 py-8">
             <div className="space-y-4">
-                {displayArticles.length > 0 ? (
-                    displayArticles.map((article) => {
+                {articles.length > 0 ? (
+                    articles.map((article, index) => {
                         // 도메인 추출
                         const domain = article.url ? extractDomain(article.url) : null;
 
@@ -52,8 +104,15 @@ export default async function Home() {
                         // 마크다운 제거
                         const plainContent = article.content ? stripMarkdown(article.content).substring(0, 100) : "본문이 없습니다.";
 
+                        // 마지막 아이템에 ref 추가
+                        const isLastItem = index === articles.length - 1;
+
                         return (
-                            <article key={article.id} className="flex gap-2">
+                            <article 
+                                key={article.id} 
+                                className="flex gap-2"
+                                ref={isLastItem ? lastArticleRef : null}
+                            >
                                 <span className="text-gray-500 w-6 flex-shrink-0">{article.id}.</span>
                                 <div className="flex-1">
                                     <div className="flex items-baseline">
@@ -93,6 +152,19 @@ export default async function Home() {
                             </article>
                         );
                     })
+                ) : isLoading ? (
+                    <div className="space-y-4">
+                        {[...Array(5)].map((_, i) => (
+                            <div key={i} className="animate-pulse flex gap-2">
+                                <div className="w-6 h-6 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                                <div className="flex-1 space-y-2">
+                                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
+                                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 ) : (
                     <div className="text-center py-10">
                         <p className="text-gray-500">아직 게시글이 없습니다.</p>
@@ -102,6 +174,12 @@ export default async function Home() {
                         >
                             첫 글 작성하기
                         </Link>
+                    </div>
+                )}
+                
+                {isLoading && articles.length > 0 && (
+                    <div className="flex justify-center py-4">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
                     </div>
                 )}
             </div>
