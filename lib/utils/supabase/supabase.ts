@@ -56,6 +56,55 @@ export type Database = {
           },
         ]
       }
+      user_comments: {
+        Row: {
+          article_id: number
+          author_id: string
+          content: string
+          created_at: string
+          id: number
+          response_to: number | null
+        }
+        Insert: {
+          article_id: number
+          author_id?: string
+          content: string
+          created_at?: string
+          id?: number
+          response_to?: number | null
+        }
+        Update: {
+          article_id?: number
+          author_id?: string
+          content?: string
+          created_at?: string
+          id?: number
+          response_to?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_comments_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "user_articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_comments_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["author_id"]
+          },
+          {
+            foreignKeyName: "user_comments_response_to_fkey"
+            columns: ["response_to"]
+            isOneToOne: false
+            referencedRelation: "user_comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_profiles: {
         Row: {
           author_id: string

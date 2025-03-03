@@ -10,6 +10,7 @@ import rehypeRaw from 'rehype-raw';
 import rehypeHighlight from 'rehype-highlight';
 import 'highlight.js/styles/github-dark.css';
 import {Metadata} from 'next';
+import CommentSection from '@/components/comments/CommentSection';
 
 interface Props {
     params: {
@@ -55,10 +56,10 @@ export async function generateMetadata({params}: Props): Promise<Metadata> {
 
     return {
         title: `${article.title} - 엔지니어링 뉴스`,
-        description: article.summary?.substring(0, 160) || '엔지니어링 뉴스 아티클',
+        description: article.content?.substring(0, 160) || '엔지니어링 뉴스 아티클',
         openGraph: {
             title: article.title,
-            description: article.summary?.substring(0, 160) || '엔지니어링 뉴스 아티클',
+            description: article.content?.substring(0, 160) || '엔지니어링 뉴스 아티클',
             type: 'article',
             authors: [authorName],
             publishedTime: article.created_at
@@ -137,12 +138,7 @@ export default async function ArticlePage({params}: Props) {
                     </ReactMarkdown>
                 </div>
 
-                <div className="my-8">
-                    <h2 className="text-xl font-medium mb-4">댓글 ({article.comment_count || 0})</h2>
-                    <div className="p-6 bg-gray-50 dark:bg-gray-800 rounded-md">
-                        <p className="text-gray-500 text-center">아직 댓글이 없습니다. 첫 댓글을 작성해보세요.</p>
-                    </div>
-                </div>
+                <CommentSection articleId={article.id} />
             </article>
         </main>
     );
