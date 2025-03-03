@@ -17,7 +17,10 @@ export default async function Home() {
     // 서버에서 데이터 가져오기 - articles 타입, 1주일 내, upvote 높은 순
     const {data: articles, error} = await supabase
         .from('user_articles')
-        .select('*')
+        .select(`
+            *,
+            user_profiles!user_articles_author_id_fkey(name)
+        `)
         .eq('board_type', 'articles')
         .gte('created_at', oneWeekAgo.toISOString())
         .order('points', {ascending: false})
@@ -42,6 +45,8 @@ export default async function Home() {
                             addSuffix: true,
                             locale: ko
                         });
+
+                        const authorName = article.user_profiles?.name || `사용자 ${article.author_id.substring(0, 8)}`;
 
                         return (
                             <article key={article.id} className="flex gap-2">
@@ -92,7 +97,7 @@ export default async function Home() {
                                     </div>
 
                                     <div className="text-xs text-gray-500 ml-5 mt-1">
-                                        {article.points} points | {createdAt} | {article.comment_count || 0} comments
+                                        {article.points} points by {authorName} | {createdAt} | {article.comment_count || 0} comments
                                     </div>
                                 </div>
                             </article>
