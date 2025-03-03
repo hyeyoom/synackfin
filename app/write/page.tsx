@@ -1,11 +1,12 @@
 'use client';
 
-import {useState} from 'react';
+import {useState, useEffect} from 'react';
 import {useRouter} from 'next/navigation';
 import MarkdownEditor from '@/components/editor/MarkdownEditor';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
 import {createArticle} from '@/lib/actions/article-actions';
+import {checkUserProfile} from '@/lib/actions/profile-actions';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 
 type BoardType = 'articles' | 'community' | 'jobs';
@@ -16,7 +17,34 @@ export default function WritePage() {
     const [boardType, setBoardType] = useState<BoardType>('articles');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
+
+    useEffect(() => {
+        const checkProfile = async () => {
+            try {
+                const result = await checkUserProfile();
+                
+                if (result.error) {
+                    setError(result.error);
+                    return;
+                }
+                
+                // 프로필이 없으면 프로필 페이지로 리다이렉트
+                if (!result.hasProfile) {
+                    router.push('/profile?reason=write&redirect=/write');
+                    return;
+                }
+            } catch (err) {
+                console.error('프로필 확인 오류:', err);
+                setError('프로필 정보를 확인하는 중 오류가 발생했습니다.');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        
+        checkProfile();
+    }, [router]);
 
     const handleSave = async (content: string) => {
         if (!title.trim()) {
@@ -50,6 +78,19 @@ export default function WritePage() {
             setIsSubmitting(false);
         }
     };
+
+    if (isLoading) {
+        return (
+            <div className="max-w-4xl mx-auto px-4 py-8">
+                <div className="animate-pulse space-y-4">
+                    <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded-md w-1/4"></div>
+                    <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-md"></div>
+                    <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-md"></div>
+                    <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded-md"></div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="max-w-4xl mx-auto px-4 py-8">
