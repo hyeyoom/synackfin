@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ModeToggle } from '@/components/mode-toggle';
+import {ModeToggle} from '@/components/mode-toggle';
 import NavLinks from './NavLinks';
 import UserAuthSection from './UserAuthSection';
 
@@ -11,12 +11,12 @@ export default function Navigation() {
                     <Link href="/" className="text-emerald-700 dark:text-emerald-500 font-bold">
                         eng.center
                     </Link>
-                    <NavLinks />
+                    <NavLinks/>
                 </div>
 
                 <div className="flex items-center gap-2">
-                    <ModeToggle />
-                    <UserAuthSection />
+                    <ModeToggle/>
+                    <UserAuthSection/>
                 </div>
             </div>
         </nav>

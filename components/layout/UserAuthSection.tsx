@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
+import {useEffect, useState} from 'react';
+import {Button} from '@/components/ui/button';
 import Link from 'next/link';
-import { createSupabaseClientForBrowser } from '@/lib/utils/supabase/client';
+import {createSupabaseClientForBrowser} from '@/lib/utils/supabase/client';
 import GoogleLoginButton from '@/components/auth/GoogleLoginButton';
-import { User } from "@supabase/auth-js";
+import {User} from "@supabase/auth-js";
 
 export default function UserAuthSection() {
     const [user, setUser] = useState<User | null>(null);
@@ -15,7 +15,7 @@ export default function UserAuthSection() {
     useEffect(() => {
         const getUser = async () => {
             try {
-                const { data } = await supabase.auth.getUser();
+                const {data} = await supabase.auth.getUser();
                 setUser(data.user);
             } catch (error) {
                 console.error('사용자 정보 가져오기 오류:', error);
@@ -26,7 +26,7 @@ export default function UserAuthSection() {
 
         getUser();
 
-        const { data: authListener } = supabase.auth.onAuthStateChange(
+        const {data: authListener} = supabase.auth.onAuthStateChange(
             (event, session) => {
                 setUser(session?.user ?? null);
             }
@@ -62,5 +62,5 @@ export default function UserAuthSection() {
         );
     }
 
-    return <GoogleLoginButton />;
-} 
+    return <GoogleLoginButton/>;
+}
