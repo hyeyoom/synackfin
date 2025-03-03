@@ -1,23 +1,57 @@
-import {dummyArticles} from '@/data/dummyArticles';
-import {Metadata} from 'next';
 import Link from 'next/link';
-import {notFound} from 'next/navigation';
+import { notFound } from 'next/navigation';
+import { createSupabaseClientForServer } from '@/lib/utils/supabase/server';
+import { formatDistanceToNow } from 'date-fns';
+import { ko } from 'date-fns/locale';
+import { extractDomain } from '@/lib/utils/url';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
+import rehypeHighlight from 'rehype-highlight';
+import 'highlight.js/styles/github-dark.css';
+import {Metadata} from 'next';
 
-type Props = {
-    params: { id: string }
+interface Props {
+    params: {
+        id: string;
+    };
 }
+
+export const revalidate = 60; // 60초마다 재검증
 
 // 동적 메타데이터 생성
 export async function generateMetadata({params}: Props): Promise<Metadata> {
     const id = parseInt(params.id);
-    const article = dummyArticles.find(article => article.id === id);
-
-    if (!article) {
+    const supabase = await createSupabaseClientForServer();
+    
+    // 실제 데이터 가져오기
+    const { data: article, error } = await supabase
+        .from('user_articles')
+        .select(`
+            *,
+            user_profiles!user_articles_author_id_fkey(name)
+        `)
+        .eq('id', id)
+        .single();
+    
+    if (error || !article) {
         return {
             title: '아티클을 찾을 수 없습니다 - 엔지니어링 뉴스',
             description: '요청하신 아티클을 찾을 수 없습니다.'
         };
     }
+
+    // 작성자 정보 처리
+    const authorName = article.user_profiles?.name || `사용자 ${article.author_id.substring(0, 8)}`;
+    
+    // 날짜 포맷팅
+    const createdAt = formatDistanceToNow(new Date(article.created_at), {
+        addSuffix: true,
+        locale: ko
+    });
+    
+    // 도메인 추출
+    const domain = article.url ? extractDomain(article.url) : null;
 
     return {
         title: `${article.title} - 엔지니어링 뉴스`,
@@ -26,19 +60,41 @@ export async function generateMetadata({params}: Props): Promise<Metadata> {
             title: article.title,
             description: article.summary?.substring(0, 160) || '엔지니어링 뉴스 아티클',
             type: 'article',
-            authors: [article.author],
-            publishedTime: article.createdAt
+            authors: [authorName],
+            publishedTime: article.created_at
         }
     };
 }
 
-export default function ArticlePage({params}: Props) {
+export default async function ArticlePage({params}: Props) {
     const id = parseInt(params.id);
-    const article = dummyArticles.find(article => article.id === id);
-
-    if (!article) {
+    const supabase = await createSupabaseClientForServer();
+    
+    // 실제 데이터 가져오기
+    const { data: article, error } = await supabase
+        .from('user_articles')
+        .select(`
+            *,
+            user_profiles!user_articles_author_id_fkey(name)
+        `)
+        .eq('id', id)
+        .single();
+    
+    if (error || !article) {
         notFound();
     }
+    
+    // 작성자 정보 처리
+    const authorName = article.user_profiles?.name || `사용자 ${article.author_id.substring(0, 8)}`;
+    
+    // 날짜 포맷팅
+    const createdAt = formatDistanceToNow(new Date(article.created_at), {
+        addSuffix: true,
+        locale: ko
+    });
+    
+    // 도메인 추출
+    const domain = article.url ? extractDomain(article.url) : null;
 
     return (
         <main className="max-w-6xl mx-auto px-4 py-8">
@@ -52,31 +108,37 @@ export default function ArticlePage({params}: Props) {
                 <h1>{article.title}</h1>
 
                 <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
-                    <span>{article.author}</span>
+                    <span>{authorName}</span>
                     <span>•</span>
-                    <span>{article.createdAt}</span>
+                    <span>{createdAt}</span>
                     <span>•</span>
                     <span>{article.points} points</span>
-                    <span>•</span>
-                    <a
-                        href={article.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-emerald-600 dark:text-emerald-400 hover:underline"
-                    >
-                        원본 링크 {article.domain && `(${article.domain})`}
-                    </a>
+                    {article.url && (
+                        <>
+                            <span>•</span>
+                            <a
+                                href={article.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-emerald-600 dark:text-emerald-400 hover:underline"
+                            >
+                                원본 링크 {domain && `(${domain})`}
+                            </a>
+                        </>
+                    )}
                 </div>
 
-                {article.summary && (
-                    <div className="my-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-md">
-                        <h2 className="text-lg font-medium mb-2">요약</h2>
-                        <p>{article.summary}</p>
-                    </div>
-                )}
+                <div className="my-6">
+                    <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        rehypePlugins={[rehypeRaw, rehypeHighlight]}
+                    >
+                        {article.content || ''}
+                    </ReactMarkdown>
+                </div>
 
                 <div className="my-8">
-                    <h2 className="text-xl font-medium mb-4">댓글 ({article.commentCount})</h2>
+                    <h2 className="text-xl font-medium mb-4">댓글 ({article.comment_count || 0})</h2>
                     <div className="p-6 bg-gray-50 dark:bg-gray-800 rounded-md text-center">
                         <p className="text-gray-500">댓글을 보려면 로그인이 필요합니다.</p>
                         <Link

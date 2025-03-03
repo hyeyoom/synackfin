@@ -36,7 +36,7 @@ export default async function Home() {
         <main className="max-w-6xl mx-auto px-4 py-8">
             <div className="space-y-4">
                 {displayArticles.length > 0 ? (
-                    displayArticles.map((article, index) => {
+                    displayArticles.map((article) => {
                         // 도메인 추출
                         const domain = article.url ? extractDomain(article.url) : null;
 
@@ -50,7 +50,7 @@ export default async function Home() {
 
                         return (
                             <article key={article.id} className="flex gap-2">
-                                <span className="text-gray-500 w-6 flex-shrink-0">{index + 1}.</span>
+                                <span className="text-gray-500 w-6 flex-shrink-0">{article.id}.</span>
                                 <div className="flex flex-col w-full">
                                     <div className="flex items-baseline">
                                         <button className="text-gray-400 hover:text-emerald-500 mr-3 flex-shrink-0">
@@ -97,7 +97,8 @@ export default async function Home() {
                                     </div>
 
                                     <div className="text-xs text-gray-500 ml-5 mt-1">
-                                        {article.points} points by {authorName} | {createdAt} | {article.comment_count || 0} comments
+                                        {article.points} points
+                                        by {authorName} | {createdAt} | {article.comment_count || 0} comments
                                     </div>
                                 </div>
                             </article>
