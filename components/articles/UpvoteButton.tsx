@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { upvoteArticle } from '@/lib/actions/article-actions';
 import { createSupabaseClientForBrowser } from '@/lib/utils/supabase/client';
 import { useRouter } from 'next/navigation';
@@ -16,51 +16,21 @@ export default function UpvoteButton({ articleId, initialPoints, className = '' 
   const [points, setPoints] = useState(initialPoints);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [hasVoted, setHasVoted] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   // 다이얼로그 외부 클릭 시 닫기
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dialogRef.current && !dialogRef.current.contains(event.target as Node)) {
-        setShowDialog(false);
-      }
-    };
+  const handleClickOutside = (event: MouseEvent) => {
+    if (dialogRef.current && !dialogRef.current.contains(event.target as Node)) {
+      setShowDialog(false);
+    }
+  };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
-  // 컴포넌트 마운트 시 이미 투표했는지 확인
-  useEffect(() => {
-    const checkVoteStatus = async () => {
-      try {
-        const supabase = createSupabaseClientForBrowser();
-        const { data: userData } = await supabase.auth.getUser();
-        
-        if (!userData.user) return;
-        
-        const { data: existingVote } = await supabase
-          .from('user_votes')
-          .select('id')
-          .eq('author_id', userData.user.id)
-          .eq('article_id', articleId)
-          .single();
-          
-        if (existingVote) {
-          setHasVoted(true);
-        }
-      } catch (err) {
-        // 에러 무시 (single() 호출 시 결과가 없으면 에러 발생)
-      }
-    };
-    
-    checkVoteStatus();
-  }, [articleId]);
+  // 다이얼로그가 표시될 때만 이벤트 리스너 추가
+  if (showDialog) {
+    document.addEventListener('mousedown', handleClickOutside, { once: true });
+  }
 
   const handleUpvote = async () => {
     try {
@@ -94,7 +64,14 @@ export default function UpvoteButton({ articleId, initialPoints, className = '' 
         );
       }
       
-      setHasVoted(true);
+      // 업보트 성공 시 버튼 색상 변경
+      const button = document.getElementById(`upvote-btn-${articleId}`);
+      if (button) {
+        button.classList.add('text-emerald-500');
+        button.classList.add('cursor-not-allowed');
+        button.setAttribute('disabled', 'true');
+      }
+      
     } catch (err) {
       console.error('투표 오류:', err);
       setError('투표 처리 중 오류가 발생했습니다.');
@@ -107,18 +84,15 @@ export default function UpvoteButton({ articleId, initialPoints, className = '' 
   return (
     <div className={`flex flex-col items-center ${className}`}>
       <button
+        id={`upvote-btn-${articleId}`}
         onClick={handleUpvote}
-        disabled={isLoading || hasVoted}
-        className={`flex items-center justify-center w-8 h-8 rounded-md transition-colors ${
-          hasVoted 
-            ? 'text-emerald-500 cursor-not-allowed' 
-            : 'text-gray-500 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20'
-        }`}
+        disabled={isLoading}
+        className="flex items-center justify-center w-8 h-8 rounded-md transition-colors text-gray-500 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
         aria-label="글 추천하기"
       >
         ▲
       </button>
-      <span className={`text-xs font-medium ${hasVoted ? 'text-emerald-500' : ''}`}>{points}</span>
+      <span className="text-xs font-medium">{points}</span>
       
       {/* 에러 다이얼로그 */}
       {showDialog && error && (
