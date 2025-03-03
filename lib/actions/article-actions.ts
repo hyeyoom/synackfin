@@ -50,3 +50,64 @@ export async function createArticle(params: CreateArticleParams) {
         return {error: '서버 오류가 발생했습니다.'};
     }
 }
+
+// upvote 함수 타입 정의
+interface UpvoteArticleParams {
+    articleId: number;
+}
+
+export async function upvoteArticle(params: UpvoteArticleParams) {
+    try {
+        const supabase = await createSupabaseClientForServer();
+
+        // 현재 로그인한 사용자 정보 가져오기
+        const {data: {user}} = await supabase.auth.getUser();
+
+        if (!user) {
+            return {error: '로그인이 필요합니다.'};
+        }
+
+        // 이미 투표했는지 확인
+        const {data: existingVote} = await supabase
+            .from('user_votes')
+            .select('id')
+            .eq('author_id', user.id)
+            .eq('article_id', params.articleId)
+            .single();
+
+        if (existingVote) {
+            return {error: '이미 이 글에 투표하셨습니다.'};
+        }
+
+        // 투표 기록 저장
+        const {error: voteError} = await supabase
+            .from('user_votes')
+            .insert({
+                author_id: user.id,
+                article_id: params.articleId
+            });
+
+        if (voteError) {
+            console.error('투표 저장 오류:', voteError);
+            return {error: voteError.message};
+        }
+
+        // RPC 함수를 사용하여 포인트 증가
+        const {data: newPoints, error: rpcError} = await supabase
+            .rpc('increment_points', {row_id: params.articleId});
+
+        if (rpcError) {
+            console.error('포인트 증가 오류:', rpcError);
+            return {error: rpcError.message};
+        }
+
+        // 캐시 무효화
+        revalidatePath('/');
+        revalidatePath(`/articles/${params.articleId}`);
+
+        return {success: true, points: newPoints};
+    } catch (error) {
+        console.error('서버 액션 오류:', error);
+        return {error: '서버 오류가 발생했습니다.'};
+    }
+}

@@ -8,6 +8,7 @@ import { ko } from 'date-fns/locale';
 import { extractDomain } from '@/lib/utils/url';
 import { stripMarkdown } from '@/lib/utils/markdown';
 import { Article } from '@/types/article';
+import UpvoteButton from '@/components/articles/UpvoteButton';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -110,11 +111,15 @@ export default function Home() {
                         return (
                             <article
                                 key={article.id}
-                                className="flex gap-2"
                                 ref={index === articles.length - 1 ? lastArticleRef : null}
+                                className="flex gap-4 p-3 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800/50"
                             >
-                                <span className="text-gray-500 w-6 flex-shrink-0">{article.id}.</span>
-                                <div className="flex-1">
+                                <UpvoteButton
+                                    articleId={article.id}
+                                    initialPoints={article.points}
+                                    className="mt-1"
+                                />
+                                <div className="flex-1 min-w-0">
                                     <div className="flex items-baseline">
                                         <h2 className="text-lg font-medium">
                                             <Link href={`/articles/${article.id}`} className="hover:text-emerald-600 dark:hover:text-emerald-400">
