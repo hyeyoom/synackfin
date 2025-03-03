@@ -55,9 +55,9 @@ export default function WritePage() {
       // 성공 메시지 표시 후 홈으로 리다이렉트 (임시)
       alert('글이 저장되었습니다. (테스트용 메시지)');
       router.push('/');
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('글 저장 오류:', err);
-      setError(err.message || '글을 저장하는 중 오류가 발생했습니다.');
+      setError(err instanceof Error ? err.message : '글을 저장하는 중 오류가 발생했습니다.');
     } finally {
       setIsSubmitting(false);
     }

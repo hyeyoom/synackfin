@@ -35,7 +35,7 @@ export default function UserAuthSection() {
         return () => {
             authListener.subscription.unsubscribe();
         };
-    }, []);
+    }, [supabase.auth]);
 
     const handleSignOut = async () => {
         await supabase.auth.signOut();
