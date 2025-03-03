@@ -7,11 +7,12 @@ import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { extractDomain } from '@/lib/utils/url';
 import { stripMarkdown } from '@/lib/utils/markdown';
+import { Article } from '@/types/article';
 
 const ITEMS_PER_PAGE = 10;
 
 export default function Home() {
-    const [articles, setArticles] = useState<any[]>([]);
+    const [articles, setArticles] = useState<Article[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [hasMore, setHasMore] = useState(true);
@@ -42,7 +43,7 @@ export default function Home() {
             const from = pageNum * ITEMS_PER_PAGE;
             const to = from + ITEMS_PER_PAGE - 1;
 
-            const { data, error } = await supabase
+            const { data: rawData, error } = await supabase
                 .from('user_articles')
                 .select(`
                     *,
@@ -55,13 +56,23 @@ export default function Home() {
                 .range(from, to);
 
             if (error) {
-                throw new Error(error.message);
+                throw error;
             }
 
-            if (data.length < ITEMS_PER_PAGE) {
-                setHasMore(false);
-            }
+            // 데이터 변환
+            const data: Article[] = rawData.map(item => ({
+                id: item.id,
+                title: item.title,
+                url: item.url || '',
+                points: item.points,
+                author: item.user_profiles?.name || `사용자 ${item.author_id.substring(0, 8)}`,
+                createdAt: item.created_at,
+                commentCount: item.comment_count || 0,
+                domain: item.url ? extractDomain(item.url) || '' : '',
+                summary: item.content ? stripMarkdown(item.content).substring(0, 100) : '본문이 없습니다.'
+            }));
 
+            setHasMore(data.length === ITEMS_PER_PAGE);
             setArticles(prev => pageNum === 0 ? data : [...prev, ...data]);
         } catch (err) {
             console.error('글 목록을 가져오는 중 오류가 발생했습니다:', err);
@@ -90,28 +101,17 @@ export default function Home() {
             <div className="space-y-4">
                 {articles.length > 0 ? (
                     articles.map((article, index) => {
-                        // 도메인 추출
-                        const domain = article.url ? extractDomain(article.url) : null;
-
                         // 날짜 포맷팅
-                        const createdAt = formatDistanceToNow(new Date(article.created_at), {
+                        const createdAt = formatDistanceToNow(new Date(article.createdAt), {
                             addSuffix: true,
                             locale: ko
                         });
-
-                        const authorName = article.user_profiles?.name || `사용자 ${article.author_id.substring(0, 8)}`;
-
-                        // 마크다운 제거
-                        const plainContent = article.content ? stripMarkdown(article.content).substring(0, 100) : "본문이 없습니다.";
-
-                        // 마지막 아이템에 ref 추가
-                        const isLastItem = index === articles.length - 1;
 
                         return (
                             <article
                                 key={article.id}
                                 className="flex gap-2"
-                                ref={isLastItem ? lastArticleRef : null}
+                                ref={index === articles.length - 1 ? lastArticleRef : null}
                             >
                                 <span className="text-gray-500 w-6 flex-shrink-0">{article.id}.</span>
                                 <div className="flex-1">
@@ -121,10 +121,10 @@ export default function Home() {
                                                 {article.title}
                                             </Link>
                                         </h2>
-                                        {domain && (
+                                        {article.domain && (
                                             <span className="ml-2 text-xs text-gray-500">
                                                 (<a href={article.url} target="_blank" rel="noopener noreferrer" className="hover:underline">
-                                                    {domain}
+                                                    {article.domain}
                                                 </a>)
                                             </span>
                                         )}
@@ -134,7 +134,7 @@ export default function Home() {
                                         <Link href={`/articles/${article.id}`} className="flex items-center w-full">
                                             <div
                                                 className="text-sm text-gray-600 dark:text-gray-400 overflow-hidden whitespace-nowrap text-ellipsis max-w-[calc(100%-80px)] hover:underline">
-                                                - {plainContent}
+                                                - {article.summary}
                                             </div>
                                             <span
                                                 className="text-xs text-emerald-600 dark:text-emerald-400 hover:underline ml-2 flex-shrink-0"
@@ -146,7 +146,7 @@ export default function Home() {
 
                                     <div className="text-xs text-gray-500 ml-1 mt-1">
                                         {article.points} points
-                                        by {authorName} | {createdAt} | {article.comment_count || 0} comments
+                                        by {article.author} | {createdAt} | {article.commentCount} comments
                                     </div>
                                 </div>
                             </article>

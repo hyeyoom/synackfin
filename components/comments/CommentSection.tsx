@@ -5,7 +5,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { createSupabaseClientForBrowser } from '@/lib/utils/supabase/client';
 import { Comment, createComment, getComments } from '@/lib/actions/comment-actions';
-import { User } from '@supabase/auth-helpers-nextjs';
+import {User} from '@supabase/supabase-js'
 
 interface CommentSectionProps {
   articleId: number;
@@ -20,7 +20,7 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   const supabase = createSupabaseClientForBrowser();
 
   // 사용자 정보 가져오기
@@ -54,12 +54,12 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
     const fetchComments = async () => {
       setIsLoading(true);
       const { comments, error } = await getComments(articleId);
-      
+
       if (error) {
         setError(error);
       } else if (comments) {
         setComments(comments);
-        
+
         // 전체 댓글 수 계산 (답글 포함)
         let total = 0;
         const countCommentsRecursively = (commentList: Comment[]) => {
@@ -70,11 +70,11 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
             }
           });
         };
-        
+
         countCommentsRecursively(comments);
         setTotalCommentCount(total);
       }
-      
+
       setIsLoading(false);
     };
 
@@ -83,32 +83,32 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
 
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!newComment.trim()) {
       return;
     }
-    
+
     try {
       setIsSubmitting(true);
       setError(null);
-      
+
       const { success, error } = await createComment({
         articleId,
         content: newComment,
         responseToId: replyTo?.id
       });
-      
+
       if (error) {
         setError(error);
       } else if (success) {
         setNewComment('');
         setReplyTo(null);
-        
+
         // 댓글 다시 가져오기
         const { comments: updatedComments } = await getComments(articleId);
         if (updatedComments) {
           setComments(updatedComments);
-          
+
           // 전체 댓글 수 다시 계산
           let total = 0;
           const countCommentsRecursively = (commentList: Comment[]) => {
@@ -119,7 +119,7 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
               }
             });
           };
-          
+
           countCommentsRecursively(updatedComments);
           setTotalCommentCount(total);
         }
@@ -165,7 +165,7 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
             답글 달기
           </button>
         )}
-        
+
         {comment.replies && comment.replies.length > 0 && (
           <div className="mt-4 space-y-4">
             {comment.replies.map(reply => renderComment(reply, true))}
@@ -178,13 +178,13 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
   return (
     <div className="my-8">
       <h2 className="text-xl font-medium mb-4">댓글 ({totalCommentCount})</h2>
-      
+
       {error && (
         <div className="bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 p-4 rounded-md mb-4">
           {error}
         </div>
       )}
-      
+
       {isLoading ? (
         <div className="space-y-4">
           {[...Array(3)].map((_, i) => (
@@ -204,7 +204,7 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
           <p className="text-gray-500 text-center">아직 댓글이 없습니다. 첫 댓글을 작성해보세요.</p>
         </div>
       )}
-      
+
       <div id="comment-form" className="mt-6">
         {user ? (
           <form onSubmit={handleSubmitComment}>
@@ -254,4 +254,4 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
       </div>
     </div>
   );
-} 
+}

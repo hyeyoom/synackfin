@@ -132,12 +132,46 @@ export type Database = {
         }
         Relationships: []
       }
+      user_votes: {
+        Row: {
+          article_id: number
+          author_id: string
+          created_at: string
+          id: number
+        }
+        Insert: {
+          article_id: number
+          author_id?: string
+          created_at?: string
+          id?: number
+        }
+        Update: {
+          article_id?: number
+          author_id?: string
+          created_at?: string
+          id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_votes_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "user_articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      increment_points: {
+        Args: {
+          row_id: number
+        }
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never
