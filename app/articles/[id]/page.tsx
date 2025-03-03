@@ -1,9 +1,8 @@
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
-import { createSupabaseClientForServer } from '@/lib/utils/supabase/server';
-import { formatDistanceToNow } from 'date-fns';
-import { ko } from 'date-fns/locale';
-import { extractDomain } from '@/lib/utils/url';
+import {createSupabaseClientForServer} from '@/lib/utils/supabase/server';
+import {formatDistanceToNow} from 'date-fns';
+import {ko} from 'date-fns/locale';
+import {extractDomain} from '@/lib/utils/url';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
@@ -11,7 +10,7 @@ import rehypeHighlight from 'rehype-highlight';
 import 'highlight.js/styles/github-dark.css';
 import {Metadata} from 'next';
 import CommentSection from '@/components/comments/CommentSection';
-import { Suspense } from 'react';
+import {Suspense} from 'react';
 
 interface Props {
     params: {
@@ -105,7 +104,7 @@ export default async function ArticlePage({params}: Props) {
 
             <article>
                 <h1 className="text-3xl font-bold mb-2">{article.title}</h1>
-                
+
                 <div className="flex items-center gap-1 text-sm text-gray-500 mb-4">
                     <span>{authorName}</span>
                     <span>•</span>
@@ -126,7 +125,7 @@ export default async function ArticlePage({params}: Props) {
                         </>
                     )}
                 </div>
-                
+
                 <div className="prose dark:prose-invert prose-sm max-w-none my-4">
                     <ReactMarkdown
                         remarkPlugins={[remarkGfm]}

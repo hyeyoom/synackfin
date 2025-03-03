@@ -1,16 +1,17 @@
 import ArticleList from '@/components/articles/ArticleList';
-import { createSupabaseClientForServer } from '@/lib/utils/supabase/server';
-import { Suspense } from 'react';
+import {createSupabaseClientForServer} from '@/lib/utils/supabase/server';
+import {Suspense} from 'react';
+import { ArticleWithProfile } from '@/types/database';
 
 export default async function Home() {
     // 초기 데이터를 서버에서 가져옴
     const supabase = await createSupabaseClientForServer();
-    
+
     // 1주일 전 날짜 계산
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-    
-    const { data: initialArticles } = await supabase
+
+    const {data: initialArticles} = await supabase
         .from('user_articles')
         .select(`
             *,
@@ -18,14 +19,14 @@ export default async function Home() {
         `)
         .eq('board_type', 'articles')
         .gte('created_at', oneWeekAgo.toISOString())
-        .order('points', { ascending: false })
-        .order('created_at', { ascending: false })
-        .range(0, 9);
-    
+        .order('points', {ascending: false})
+        .order('created_at', {ascending: false})
+        .range(0, 9) as { data: ArticleWithProfile[] | null };
+
     return (
         <main className="max-w-6xl mx-auto px-4 py-8">
-            <Suspense fallback={<ArticleListSkeleton />}>
-                <ArticleList initialArticles={initialArticles || []} />
+            <Suspense fallback={<ArticleListSkeleton/>}>
+                <ArticleList initialArticles={initialArticles || []}/>
             </Suspense>
         </main>
     );
