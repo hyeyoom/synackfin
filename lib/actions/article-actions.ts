@@ -3,7 +3,7 @@
 import {createSupabaseClientForServer} from '@/lib/utils/supabase/server';
 import {revalidatePath} from 'next/cache';
 
-type BoardType = 'articles' | 'community' | 'jobs';
+type BoardType = 'articles' | 'community';
 
 interface CreateArticleParams {
     title: string;

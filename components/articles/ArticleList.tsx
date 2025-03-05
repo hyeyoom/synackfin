@@ -15,9 +15,10 @@ const ITEMS_PER_PAGE = 10;
 
 interface ArticleListProps {
     initialArticles: ArticleWithProfile[];
+    boardType?: 'articles' | 'community';
 }
 
-export default function ArticleList({initialArticles}: ArticleListProps) {
+export default function ArticleList({initialArticles, boardType = 'articles'}: ArticleListProps) {
     // 상태 관리
     const [articles, setArticles] = useState<Article[]>(initialArticles.map(transformArticleData));
     const [isLoading, setIsLoading] = useState(false);
@@ -51,7 +52,7 @@ export default function ArticleList({initialArticles}: ArticleListProps) {
                     *,
                     user_profiles!user_articles_author_id_fkey(name)
                 `)
-                .eq('board_type', 'articles')
+                .eq('board_type', boardType)
                 .gte('created_at', oneWeekAgo.toISOString())
                 .order('points', {ascending: false})
                 .order('created_at', {ascending: false})
@@ -68,7 +69,7 @@ export default function ArticleList({initialArticles}: ArticleListProps) {
         } finally {
             setIsLoading(false);
         }
-    }, [isLoading, hasMore, page, initialArticles]);
+    }, [isLoading, hasMore, page, initialArticles, boardType]);
     
     // 무한 스크롤 구현
     const observer = useRef<IntersectionObserver | null>(null);

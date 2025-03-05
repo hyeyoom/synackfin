@@ -9,9 +9,6 @@ export default function NavLinks() {
             <Link href="/community" className="text-muted-foreground hover:text-foreground">
                 community
             </Link>
-            <Link href="/jobs" className="text-muted-foreground hover:text-foreground">
-                jobs
-            </Link>
         </div>
     );
 } 

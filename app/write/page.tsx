@@ -9,7 +9,7 @@ import {createArticle} from '@/lib/actions/article-actions';
 import {checkUserProfile} from '@/lib/actions/profile-actions';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 
-type BoardType = 'articles' | 'community' | 'jobs';
+type BoardType = 'articles' | 'community';
 
 export default function WritePage() {
     const [title, setTitle] = useState('');
@@ -115,7 +115,6 @@ export default function WritePage() {
                         <SelectContent>
                             <SelectItem value="articles" className="cursor-pointer">기술 아티클</SelectItem>
                             <SelectItem value="community" className="cursor-pointer">커뮤니티</SelectItem>
-                            <SelectItem value="jobs" className="cursor-pointer">구인/구직</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
