@@ -1,6 +1,6 @@
 'use client';
 
-import {useCallback, useRef} from 'react';
+import {useCallback, useRef, useState} from 'react';
 import Link from 'next/link';
 import {formatDistanceToNow} from 'date-fns';
 import {ko} from 'date-fns/locale';
@@ -8,10 +8,8 @@ import {extractDomain} from '@/lib/utils/url';
 import {stripMarkdown} from '@/lib/utils/markdown';
 import {Article} from '@/types/article';
 import UpvoteButton from '@/components/articles/UpvoteButton';
-import useSWRInfinite from 'swr/infinite';
 import {createSupabaseClientForBrowser} from '@/lib/utils/supabase/client';
-import {Tables} from "@/lib/utils/supabase/supabase";
-import { ArticleWithProfile } from '@/types/database';
+import {ArticleWithProfile} from '@/types/database';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -20,79 +18,73 @@ interface ArticleListProps {
 }
 
 export default function ArticleList({initialArticles}: ArticleListProps) {
-    // 초기 데이터를 변환
-    const transformedInitialData = initialArticles.map(transformArticleData);
-
-    // SWR Infinite를 사용하여 데이터 페칭 및 캐싱
-    const getKey = (pageIndex: number, previousPageData: (Tables<'user_articles'> & {
-        user_profiles?: {
-            name: string | null;
-        };
-    })[] | null) => {
-        if (previousPageData && !previousPageData.length) return null;
-        return `/api/articles?page=${pageIndex}`;
-    };
-
-    const fetcher = async (url: string): Promise<Article[]> => {
-        const pageIndex = parseInt(url.split('=')[1]);
-
-        // 첫 페이지이고 초기 데이터가 있으면 초기 데이터 사용
-        if (pageIndex === 0 && transformedInitialData.length > 0) {
-            return transformedInitialData;
+    // 상태 관리
+    const [articles, setArticles] = useState<Article[]>(initialArticles.map(transformArticleData));
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [page, setPage] = useState(0);
+    const [hasMore, setHasMore] = useState(true);
+    
+    // 추가 데이터 로드 함수 - useCallback으로 감싸기
+    const loadMoreArticles = useCallback(async () => {
+        if (isLoading || !hasMore) return;
+        
+        try {
+            setIsLoading(true);
+            
+            const nextPage = page + 1;
+            // 첫 페이지이고 초기 데이터가 있으면 초기 데이터 사용
+            if (nextPage === 0 && initialArticles.length > 0) {
+                return;
+            }
+            
+            const supabase = createSupabaseClientForBrowser();
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+            
+            const from = nextPage * ITEMS_PER_PAGE;
+            const to = from + ITEMS_PER_PAGE - 1;
+            
+            const {data: rawData} = await supabase
+                .from('user_articles')
+                .select(`
+                    *,
+                    user_profiles!user_articles_author_id_fkey(name)
+                `)
+                .eq('board_type', 'articles')
+                .gte('created_at', oneWeekAgo.toISOString())
+                .order('points', {ascending: false})
+                .order('created_at', {ascending: false})
+                .range(from, to) as { data: ArticleWithProfile[] | null };
+            
+            const newArticles = (rawData || []).map(transformArticleData);
+            
+            setArticles(prev => [...prev, ...newArticles]);
+            setPage(nextPage);
+            setHasMore(newArticles.length === ITEMS_PER_PAGE);
+        } catch (err) {
+            console.error('글 목록 가져오기 오류:', err);
+            setError('글 목록을 가져오는 중 오류가 발생했습니다.');
+        } finally {
+            setIsLoading(false);
         }
-
-        const supabase = createSupabaseClientForBrowser();
-        const oneWeekAgo = new Date();
-        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-
-        const from = pageIndex * ITEMS_PER_PAGE;
-        const to = from + ITEMS_PER_PAGE - 1;
-
-        const {data: rawData} = await supabase
-            .from('user_articles')
-            .select(`
-        *,
-        user_profiles!user_articles_author_id_fkey(name)
-      `)
-            .eq('board_type', 'articles')
-            .gte('created_at', oneWeekAgo.toISOString())
-            .order('points', {ascending: false})
-            .order('created_at', {ascending: false})
-            .range(from, to) as { data: ArticleWithProfile[] | null };
-
-        return (rawData || []).map(transformArticleData);
-    };
-
-    const {data, error, size, setSize, isValidating} = useSWRInfinite(
-        getKey,
-        fetcher,
-        {
-            fallbackData: transformedInitialData.length > 0 ? [[...transformedInitialData]] : undefined,
-            revalidateOnFocus: false,
-            revalidateIfStale: false,
-            revalidateOnReconnect: false
-        }
-    );
-
-    const articles = data ? data.flat() : [];
-    const isLoading = isValidating;
-    const hasMore = data && data[data.length - 1]?.length === ITEMS_PER_PAGE;
-
+    }, [isLoading, hasMore, page, initialArticles]);
+    
     // 무한 스크롤 구현
     const observer = useRef<IntersectionObserver | null>(null);
     const lastArticleRef = useCallback((node: HTMLElement | null) => {
         if (isLoading) return;
         if (observer.current) observer.current.disconnect();
-
+        
         observer.current = new IntersectionObserver(entries => {
             if (entries[0].isIntersecting && hasMore) {
-                setSize(size + 1);
+                loadMoreArticles();
             }
         });
-
+        
         if (node) observer.current.observe(node);
-    }, [isLoading, hasMore, setSize, size]);
-
+    }, [isLoading, hasMore, loadMoreArticles]);
+    
     if (error) {
         return (
             <div className="bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 p-4 rounded-md">
@@ -100,7 +92,7 @@ export default function ArticleList({initialArticles}: ArticleListProps) {
             </div>
         );
     }
-
+    
     if (articles.length === 0 && !isLoading) {
         return (
             <div className="text-center py-10">
@@ -114,7 +106,7 @@ export default function ArticleList({initialArticles}: ArticleListProps) {
             </div>
         );
     }
-
+    
     return (
         <div className="space-y-4">
             {articles.map((article, index) => {
@@ -123,7 +115,7 @@ export default function ArticleList({initialArticles}: ArticleListProps) {
                     addSuffix: true,
                     locale: ko
                 });
-
+                
                 return (
                     <article
                         key={article.id}
@@ -136,38 +128,37 @@ export default function ArticleList({initialArticles}: ArticleListProps) {
                                 articleId={article.id}
                                 initialPoints={article.points}
                                 className="mt-1"
+                                onPointsUpdate={(newPoints) => {
+                                    setArticles(prev => 
+                                        prev.map(a => a.id === article.id ? {...a, points: newPoints} : a)
+                                    );
+                                }}
                             />
                         </div>
-                        <div className="flex-1 min-w-0">
-                            <div className="flex items-baseline">
+                        
+                        <div className="flex-1">
+                            <div className="flex items-center gap-1">
                                 <h2 className="text-lg font-medium">
                                     {article.url ? (
                                         <a
                                             href={article.url}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="hover:text-emerald-600 dark:hover:text-emerald-400"
+                                            className="hover:underline"
                                         >
                                             {article.title}
                                         </a>
                                     ) : (
-                                        <Link
-                                            href={`/articles/${article.id}`}
-                                            className="hover:text-emerald-600 dark:hover:text-emerald-400"
-                                        >
+                                        <Link href={`/articles/${article.id}`} className="hover:underline">
                                             {article.title}
                                         </Link>
                                     )}
                                 </h2>
                                 {article.domain && (
-                                    <span className="ml-2 text-xs text-gray-500">
-                    (<a href={article.url} target="_blank" rel="noopener noreferrer" className="hover:underline">
-                      {article.domain}
-                    </a>)
-                  </span>
+                                    <span className="text-xs text-gray-500">({article.domain})</span>
                                 )}
                             </div>
-
+                            
                             <div className="flex items-center mt-1">
                                 <Link href={`/articles/${article.id}`} className="flex items-center w-full">
                                     <div
@@ -178,11 +169,11 @@ export default function ArticleList({initialArticles}: ArticleListProps) {
                                     <span
                                         className="text-xs text-emerald-600 dark:text-emerald-400 hover:underline ml-2 flex-shrink-0"
                                     >
-                    전체 보기
-                  </span>
+                                        전체 보기
+                                    </span>
                                 </Link>
                             </div>
-
+                            
                             <div className="text-xs text-gray-500 mt-1">
                                 {article.points} points
                                 by {article.author} | {createdAt} | {article.commentCount} comments
@@ -191,7 +182,7 @@ export default function ArticleList({initialArticles}: ArticleListProps) {
                     </article>
                 );
             })}
-
+            
             {isLoading && articles.length > 0 && (
                 <div className="flex justify-center py-4">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
