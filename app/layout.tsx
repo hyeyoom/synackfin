@@ -16,7 +16,7 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-    title: "Engineering News",
+    title: "Engineering News - c0ffee.in ☕️",
     description: "엔지니어링 뉴스 및 아티클 플랫폼",
 };
 

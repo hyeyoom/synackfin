@@ -46,7 +46,7 @@ export async function generateMetadata({params}: Props): Promise<Metadata> {
     const authorName = article.user_profiles?.name || `사용자 ${article.author_id.substring(0, 8)}`;
 
     return {
-        title: `${article.title} - 엔지니어링 뉴스`,
+        title: `${article.title} - c0ffee.in ☕️`,
         description: article.content?.substring(0, 160) || '엔지니어링 뉴스 아티클',
         openGraph: {
             title: article.title,

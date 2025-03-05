@@ -9,7 +9,7 @@ export default function Navigation() {
             <div className="max-w-6xl mx-auto px-4 h-12 flex items-center justify-between">
                 <div className="flex items-center gap-6">
                     <Link href="/" className="text-emerald-700 dark:text-emerald-500 font-bold">
-                        eng.center
+                        c0ffee.in ☕️
                     </Link>
                     <NavLinks/>
                 </div>
