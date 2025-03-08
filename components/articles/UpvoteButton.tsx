@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useRef } from 'react';
-import { upvoteArticle } from '@/lib/actions/article-actions';
-import { createSupabaseClientForBrowser } from '@/lib/utils/supabase/client';
+import { useState } from 'react';
+import { ChevronUp } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { createSupabaseClientForBrowser } from '@/lib/utils/supabase/client';
+import { upvoteArticle } from '@/lib/actions/article-actions';
 
 interface UpvoteButtonProps {
   articleId: number;
@@ -20,27 +21,11 @@ export default function UpvoteButton({
 }: UpvoteButtonProps) {
   const [points, setPoints] = useState(initialPoints);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [showDialog, setShowDialog] = useState(false);
-  const dialogRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-
-  // 다이얼로그 외부 클릭 시 닫기
-  const handleClickOutside = (event: MouseEvent) => {
-    if (dialogRef.current && !dialogRef.current.contains(event.target as Node)) {
-      setShowDialog(false);
-    }
-  };
-
-  // 다이얼로그가 표시될 때만 이벤트 리스너 추가
-  if (showDialog) {
-    document.addEventListener('mousedown', handleClickOutside, { once: true });
-  }
 
   const handleUpvote = async () => {
     try {
       setIsLoading(true);
-      setError(null);
 
       const supabase = createSupabaseClientForBrowser();
       const { data } = await supabase.auth.getUser();
@@ -53,8 +38,7 @@ export default function UpvoteButton({
       const result = await upvoteArticle({ articleId });
 
       if (result.error) {
-        setError(result.error);
-        setShowDialog(true);
+        alert(result.error);
         return;
       }
 
@@ -77,8 +61,7 @@ export default function UpvoteButton({
       
     } catch (err) {
       console.error('투표 오류:', err);
-      setError('투표 처리 중 오류가 발생했습니다.');
-      setShowDialog(true);
+      alert('투표 처리 중 오류가 발생했습니다.');
     } finally {
       setIsLoading(false);
     }
@@ -98,30 +81,11 @@ export default function UpvoteButton({
         className={`flex items-center justify-center w-8 h-8 rounded-md transition-colors ${buttonColorClass}`}
         aria-label="글 추천하기"
       >
-        ▲
+        <ChevronUp className="h-5 w-5" />
       </button>
       <span className={`text-xs font-medium ${points > 0 ? 'text-emerald-500' : ''}`}>
         {points}
       </span>
-      
-      {/* 에러 다이얼로그 */}
-      {showDialog && error && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div 
-            ref={dialogRef}
-            className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 max-w-sm mx-auto"
-          >
-            <h3 className="text-lg font-medium mb-2">알림</h3>
-            <p className="text-gray-700 dark:text-gray-300 mb-4">{error}</p>
-            <button
-              onClick={() => setShowDialog(false)}
-              className="px-4 py-2 bg-emerald-500 text-white rounded-md hover:bg-emerald-600 transition-colors"
-            >
-              확인
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 } 
