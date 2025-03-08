@@ -6,6 +6,7 @@ import Link from 'next/link';
 import {createSupabaseClientForBrowser} from '@/lib/utils/supabase/client';
 import GoogleLoginButton from '@/components/auth/GoogleLoginButton';
 import {User} from "@supabase/auth-js";
+import { PenSquare, UserCircle, LogOut } from "lucide-react";
 
 export default function UserAuthSection() {
     const [user, setUser] = useState<User | null>(null);
@@ -48,15 +49,38 @@ export default function UserAuthSection() {
     if (user) {
         return (
             <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm" asChild>
-                    <Link href="/write">작성하기</Link>
-                </Button>
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleSignOut}
+                <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="relative rounded-full hover:bg-emerald-100 dark:hover:bg-emerald-900/30"
+                    asChild
+                    title="글 작성하기"
                 >
-                    로그아웃
+                    <Link href="/write">
+                        <PenSquare className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                    </Link>
+                </Button>
+                
+                <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="relative rounded-full hover:bg-emerald-100 dark:hover:bg-emerald-900/30"
+                    asChild
+                    title="프로필 관리"
+                >
+                    <Link href="/profile">
+                        <UserCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                    </Link>
+                </Button>
+                
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleSignOut}
+                    className="relative rounded-full hover:bg-emerald-100 dark:hover:bg-emerald-900/30"
+                    title="로그아웃"
+                >
+                    <LogOut className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                 </Button>
             </div>
         );
