@@ -143,14 +143,19 @@ export default function ArticleList({
                     <article
                         key={article.id}
                         ref={index === articles.length - 1 ? lastArticleRef : null}
-                        className="flex gap-4 p-3 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                        className="flex gap-4 p-3 rounded-md border border-transparent 
+                            transition-all duration-300 ease-in-out
+                            hover:bg-emerald-50/30 dark:hover:bg-emerald-900/10 
+                            hover:border-emerald-300 dark:hover:border-emerald-700
+                            hover:shadow-md hover:shadow-emerald-200/40 dark:hover:shadow-emerald-900/30
+                            group"
                     >
                         <div className="flex flex-col items-center mr-1 w-6">
                             <span className="text-gray-500 text-sm">{article.id}.</span>
                             <UpvoteButton
                                 articleId={article.id}
                                 initialPoints={article.points}
-                                className="mt-1"
+                                className="mt-1 transition-transform duration-300 group-hover:scale-110"
                                 onPointsUpdate={(newPoints) => {
                                     setArticles(prev => 
                                         prev.map(a => a.id === article.id ? {...a, points: newPoints} : a)
@@ -167,12 +172,15 @@ export default function ArticleList({
                                             href={article.url}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="hover:underline"
+                                            className="hover:underline transition-colors duration-300 
+                                                group-hover:text-emerald-600 dark:group-hover:text-emerald-400"
                                         >
                                             {article.title}
                                         </a>
                                     ) : (
-                                        <Link href={`/articles/${article.id}`} className="hover:underline">
+                                        <Link href={`/articles/${article.id}`} 
+                                            className="hover:underline transition-colors duration-300 
+                                                group-hover:text-emerald-600 dark:group-hover:text-emerald-400">
                                             {article.title}
                                         </Link>
                                     )}
