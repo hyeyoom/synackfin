@@ -15,8 +15,11 @@ const geistMono = localFont({
     weight: "100 900",
 });
 
+// 환경 변수에서 사이트 이름 가져오기
+const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'Engineering News';
+
 export const metadata: Metadata = {
-    title: "Engineering News - c0ffee.in ☕️",
+    title: `${siteName}`,
     description: "엔지니어링 뉴스 및 아티클 플랫폼",
 };
 

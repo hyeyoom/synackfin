@@ -2,7 +2,8 @@ import {createSupabaseClientForServer} from '@/lib/utils/supabase/server';
 import {MetadataRoute} from 'next';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://c0ffee.in';
+    // 기본 URL은 환경 변수에서 가져오며, 설정되지 않았을 경우 개발 환경용 URL 사용
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
     const supabase = await createSupabaseClientForServer();
 
     // 정적 페이지

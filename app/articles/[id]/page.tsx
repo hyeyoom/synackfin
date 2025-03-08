@@ -24,6 +24,9 @@ export const revalidate = 60; // 60초마다 재검증
 export async function generateMetadata({params}: Props): Promise<Metadata> {
     const id = parseInt(params.id);
     const supabase = await createSupabaseClientForServer();
+    
+    // 환경 변수에서 사이트 이름 가져오기
+    const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'Engineering News';
 
     // 실제 데이터 가져오기
     const { data: article, error } = await supabase
@@ -37,7 +40,7 @@ export async function generateMetadata({params}: Props): Promise<Metadata> {
 
     if (error || !article) {
         return {
-            title: '아티클을 찾을 수 없습니다 - 엔지니어링 뉴스',
+            title: `아티클을 찾을 수 없습니다 - ${siteName}`,
             description: '요청하신 아티클을 찾을 수 없습니다.'
         };
     }
@@ -46,7 +49,7 @@ export async function generateMetadata({params}: Props): Promise<Metadata> {
     const authorName = article.user_profiles?.name || `사용자 ${article.author_id.substring(0, 8)}`;
 
     return {
-        title: `${article.title} - c0ffee.in ☕️`,
+        title: `${article.title} - ${siteName}`,
         description: article.content?.substring(0, 160) || '엔지니어링 뉴스 아티클',
         openGraph: {
             title: article.title,

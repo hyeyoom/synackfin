@@ -7,6 +7,10 @@ import NavLinks from './NavLinks';
 import UserAuthSection from './UserAuthSection';
 import { Menu, X } from 'lucide-react';
 
+// 환경 변수에서 사이트 이름 가져오기
+const siteName = process.env.NEXT_PUBLIC_SITE_NAME || 'Engineering News';
+const siteLogo = process.env.NEXT_PUBLIC_SITE_LOGO || '☕️';
+
 export default function Navigation() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     
@@ -19,7 +23,7 @@ export default function Navigation() {
             <div className="max-w-6xl mx-auto px-4 h-12 flex items-center justify-between">
                 <div className="flex items-center gap-6">
                     <Link href="/" onClick={closeMenu} className="text-emerald-700 dark:text-emerald-500 font-bold">
-                        c0ffee.in ☕️
+                        {siteName} {siteLogo}
                     </Link>
                     {/* 데스크톱에서만 보이는 네비게이션 링크 */}
                     <div className="hidden md:block">
