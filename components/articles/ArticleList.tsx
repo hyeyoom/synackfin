@@ -164,9 +164,9 @@ export default function ArticleList({
                             />
                         </div>
                         
-                        <div className="flex-1">
-                            <div className="flex items-center gap-1">
-                                <h2 className="text-lg font-medium">
+                        <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-1">
+                                <h2 className="text-lg font-medium break-words">
                                     {article.url ? (
                                         <a
                                             href={article.url}
@@ -186,7 +186,7 @@ export default function ArticleList({
                                     )}
                                 </h2>
                                 {article.domain && (
-                                    <span className="text-xs text-gray-500">({article.domain})</span>
+                                    <span className="text-xs text-gray-500 flex-shrink-0">({article.domain})</span>
                                 )}
                             </div>
                             
@@ -205,9 +205,21 @@ export default function ArticleList({
                                 </Link>
                             </div>
                             
-                            <div className="text-xs text-gray-500 mt-1">
-                                {article.points} points
-                                by {article.author} | {createdAt} | {article.commentCount} comments
+                            <div className="text-xs text-gray-500 mt-1 flex flex-wrap gap-x-1 gap-y-0.5">
+                                <span>{article.points} points</span>
+                                <span>•</span>
+                                <Link 
+                                    href={`/users/${encodeURIComponent(article.author)}`}
+                                    className="hover:underline hover:text-emerald-600"
+                                >
+                                    {article.author}
+                                </Link>
+                                <span>•</span>
+                                <span>{createdAt}</span>
+                                <span>•</span>
+                                <Link href={`/articles/${article.id}`} className="hover:underline">
+                                    {article.commentCount} comments
+                                </Link>
                             </div>
                         </div>
                     </article>
