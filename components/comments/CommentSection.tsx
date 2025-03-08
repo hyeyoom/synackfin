@@ -6,6 +6,7 @@ import { ko } from 'date-fns/locale';
 import { createSupabaseClientForBrowser } from '@/lib/utils/supabase/client';
 import { Comment, createComment, getComments } from '@/lib/actions/comment-actions';
 import {User} from '@supabase/supabase-js'
+import Link from 'next/link';
 
 interface CommentSectionProps {
   articleId: number;
@@ -151,7 +152,12 @@ export default function CommentSection({ articleId }: CommentSectionProps) {
     return (
       <div key={comment.id} className={`${isReply ? 'ml-8 border-l-2 pl-4 border-gray-200 dark:border-gray-700' : 'border-b border-gray-200 dark:border-gray-700 pb-4 mb-4'}`}>
         <div className="flex items-center gap-2 mb-2">
-          <span className="font-medium">{authorName}</span>
+          <Link 
+            href={`/users/${encodeURIComponent(authorName)}`}
+            className="font-medium hover:text-emerald-600 dark:hover:text-emerald-400 hover:underline"
+          >
+            {authorName}
+          </Link>
           <span className="text-xs text-gray-500">{createdAt}</span>
         </div>
         <div className="prose-sm dark:prose-invert mb-2 whitespace-pre-wrap">

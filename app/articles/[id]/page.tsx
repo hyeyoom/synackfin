@@ -106,7 +106,12 @@ export default async function ArticlePage({params}: Props) {
                 <h1 className="text-3xl font-bold mb-2">{article.title}</h1>
 
                 <div className="flex items-center gap-1 text-sm text-gray-500 mb-4">
-                    <span>{authorName}</span>
+                    <Link 
+                        href={`/users/${encodeURIComponent(authorName)}`}
+                        className="hover:text-emerald-600 dark:hover:text-emerald-400 hover:underline"
+                    >
+                        {authorName}
+                    </Link>
                     <span>•</span>
                     <span className="text-emerald-500 font-medium">{article.points} points</span>
                     <span>•</span>
