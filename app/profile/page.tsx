@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { checkUserProfile, createUserProfile } from '@/lib/actions/profile-actions';
+import { checkUserProfile, createUserProfile, updateUserProfile } from '@/lib/actions/profile-actions';
+import { createSupabaseClientForBrowser } from '@/lib/utils/supabase/client';
 
 export default function ProfilePage() {
   const [name, setName] = useState('');
@@ -15,11 +16,20 @@ export default function ProfilePage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [redirectReason, setRedirectReason] = useState<string | null>(null);
+  const [hasProfile, setHasProfile] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     const checkProfile = async () => {
       try {
+        const supabase = createSupabaseClientForBrowser();
+        const { data } = await supabase.auth.getUser();
+        
+        if (!data.user) {
+          router.push('/auth/signin');
+          return;
+        }
+        
         const result = await checkUserProfile();
         
         if (result.error) {
@@ -27,23 +37,18 @@ export default function ProfilePage() {
           return;
         }
         
-        // 이미 프로필이 있으면 홈으로 리다이렉트
-        if (result.hasProfile) {
-          const urlParams = new URLSearchParams(window.location.search);
-          const redirect = urlParams.get('redirect');
-          
-          if (redirect) {
-            router.push(redirect);
-          } else {
-            router.push('/');
-          }
-        }
-        
         // URL 파라미터에서 리다이렉트 이유 확인
         const urlParams = new URLSearchParams(window.location.search);
         const reason = urlParams.get('reason');
         if (reason) {
           setRedirectReason(reason);
+        }
+        
+        // 프로필이 있으면 기존 정보 표시
+        if (result.hasProfile && result.profile) {
+          setHasProfile(true);
+          setName(result.profile.name || '');
+          setBio(result.profile.bio || '');
         }
       } catch (err) {
         console.error('프로필 확인 오류:', err);
@@ -68,10 +73,16 @@ export default function ProfilePage() {
       setIsSubmitting(true);
       setError(null);
       
-      const result = await createUserProfile({
-        name: name.trim(),
-        bio: bio.trim() || undefined
-      });
+      // 프로필이 있으면 업데이트, 없으면 생성
+      const result = hasProfile
+        ? await updateUserProfile({
+            name: name.trim(),
+            bio: bio.trim() || undefined
+          })
+        : await createUserProfile({
+            name: name.trim(),
+            bio: bio.trim() || undefined
+          });
       
       if (result.error) {
         throw new Error(result.error);
@@ -108,7 +119,9 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-md mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">프로필 설정</h1>
+      <h1 className="text-2xl font-bold mb-6">
+        {hasProfile ? '프로필 수정' : '프로필 설정'}
+      </h1>
       
       {redirectReason === 'write' && (
         <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 rounded-md">
@@ -151,7 +164,7 @@ export default function ProfilePage() {
           className="w-full" 
           disabled={isSubmitting}
         >
-          {isSubmitting ? '저장 중...' : '프로필 저장'}
+          {isSubmitting ? '저장 중...' : (hasProfile ? '프로필 업데이트' : '프로필 저장')}
         </Button>
       </form>
     </div>

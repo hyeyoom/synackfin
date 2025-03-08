@@ -68,3 +68,40 @@ export async function createUserProfile(params: { name: string; bio?: string }) 
     return { error: '서버 오류가 발생했습니다.' };
   }
 }
+
+// 프로필 업데이트 함수 추가
+export async function updateUserProfile(params: { name: string; bio?: string }) {
+  try {
+    const supabase = await createSupabaseClientForServer();
+    
+    // 현재 로그인한 사용자 정보 가져오기
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      return { error: '로그인이 필요합니다.' };
+    }
+    
+    // 프로필 업데이트
+    const { error } = await supabase
+      .from('user_profiles')
+      .update({
+        name: params.name,
+        bio: params.bio || null,
+        updated_at: new Date().toISOString()
+      })
+      .eq('author_id', user.id);
+    
+    if (error) {
+      console.error('프로필 업데이트 오류:', error);
+      return { error: error.message };
+    }
+    
+    // 캐시 무효화
+    revalidatePath('/profile');
+    
+    return { success: true };
+  } catch (error) {
+    console.error('서버 액션 오류:', error);
+    return { error: '서버 오류가 발생했습니다.' };
+  }
+}
