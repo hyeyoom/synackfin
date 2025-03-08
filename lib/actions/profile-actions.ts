@@ -14,18 +14,22 @@ export async function checkUserProfile() {
       return { error: '로그인이 필요합니다.', hasProfile: false };
     }
     
-    // 사용자 프로필 확인
+    // 사용자 프로필 확인 - 필요한 필드만 선택
     const { data: profile, error } = await supabase
       .from('user_profiles')
-      .select('*')
+      .select('name, bio, created_at, updated_at')
       .eq('author_id', user.id)
       .single();
     
     if (error || !profile) {
-      return { hasProfile: false, userId: user.id };
+      return { hasProfile: false };
     }
     
-    return { hasProfile: true, profile };
+    // 이미 author_id를 제외한 필드만 선택했으므로 안전하게 반환
+    return { 
+      hasProfile: true, 
+      profile 
+    };
   } catch (error) {
     console.error('프로필 확인 오류:', error);
     return { error: '서버 오류가 발생했습니다.', hasProfile: false };
