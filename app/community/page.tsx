@@ -1,7 +1,7 @@
 import ArticleList from '@/components/articles/ArticleList';
 import {createSupabaseClientForServer} from '@/lib/utils/supabase/server';
 import {Suspense} from 'react';
-import { ArticleWithProfile } from '@/types/database';
+import {ArticleWithProfile} from '@/types/database';
 import ArticleListSkeleton from '@/components/articles/ArticleListSkeleton';
 
 export default async function CommunityPage() {
@@ -22,8 +22,13 @@ export default async function CommunityPage() {
         <main className="max-w-6xl mx-auto px-4 py-8">
             <h1 className="text-3xl font-bold mb-6">커뮤니티</h1>
             <Suspense fallback={<ArticleListSkeleton/>}>
-                <ArticleList initialArticles={initialArticles || []} boardType="community" />
+                <ArticleList
+                    initialArticles={initialArticles || []}
+                    boardType="community"
+                    useWeeklyFilter={false}  // 1주일 필터 미적용
+                    orderByPoints={false}    // 포인트순 정렬 미적용
+                />
             </Suspense>
         </main>
     );
-} 
+}

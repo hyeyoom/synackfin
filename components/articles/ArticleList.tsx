@@ -16,9 +16,16 @@ const ITEMS_PER_PAGE = 10;
 interface ArticleListProps {
     initialArticles: ArticleWithProfile[];
     boardType?: 'articles' | 'community';
+    useWeeklyFilter?: boolean;
+    orderByPoints?: boolean;
 }
 
-export default function ArticleList({initialArticles, boardType = 'articles'}: ArticleListProps) {
+export default function ArticleList({
+    initialArticles, 
+    boardType = 'articles',
+    useWeeklyFilter = false,  // 1주일 필터 적용 여부
+    orderByPoints = false     // 포인트순 정렬 여부
+}: ArticleListProps) {
     // 상태 관리
     const [articles, setArticles] = useState<Article[]>(initialArticles.map(transformArticleData));
     const [isLoading, setIsLoading] = useState(false);
@@ -40,36 +47,51 @@ export default function ArticleList({initialArticles, boardType = 'articles'}: A
             }
             
             const supabase = createSupabaseClientForBrowser();
-            const oneWeekAgo = new Date();
-            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-            
             const from = nextPage * ITEMS_PER_PAGE;
             const to = from + ITEMS_PER_PAGE - 1;
             
-            const {data: rawData} = await supabase
+            // 기본 쿼리 설정
+            let query = supabase
                 .from('user_articles')
                 .select(`
                     *,
                     user_profiles!user_articles_author_id_fkey(name)
                 `)
-                .eq('board_type', boardType)
-                .gte('created_at', oneWeekAgo.toISOString())
-                .order('points', {ascending: false})
-                .order('created_at', {ascending: false})
-                .range(from, to) as { data: ArticleWithProfile[] | null };
+                .eq('board_type', boardType);
+            
+            // 1주일 필터 적용 (메인 페이지용)
+            if (useWeeklyFilter) {
+                const oneWeekAgo = new Date();
+                oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+                query = query.gte('created_at', oneWeekAgo.toISOString());
+            }
+            
+            // 정렬 조건 적용
+            if (orderByPoints) {
+                query = query.order('points', {ascending: false});
+            }
+            
+            // 항상 날짜순으로 정렬 (2차 정렬)
+            query = query.order('created_at', {ascending: false});
+            
+            const {data: rawData} = await query.range(from, to) as { data: ArticleWithProfile[] | null };
             
             const newArticles = (rawData || []).map(transformArticleData);
             
-            setArticles(prev => [...prev, ...newArticles]);
+            // 중복 제거 로직 추가
+            const existingIds = articles.map(a => a.id);
+            const uniqueNewArticles = newArticles.filter(a => !existingIds.includes(a.id));
+            
+            setArticles(prev => [...prev, ...uniqueNewArticles]);
             setPage(nextPage);
-            setHasMore(newArticles.length === ITEMS_PER_PAGE);
+            setHasMore(newArticles.length > 0);  // 마지막 페이지 처리 개선
         } catch (err) {
             console.error('글 목록 가져오기 오류:', err);
             setError('글 목록을 가져오는 중 오류가 발생했습니다.');
         } finally {
             setIsLoading(false);
         }
-    }, [isLoading, hasMore, page, initialArticles, boardType]);
+    }, [isLoading, hasMore, page, articles, boardType, useWeeklyFilter, orderByPoints, initialArticles.length]);
     
     // 무한 스크롤 구현
     const observer = useRef<IntersectionObserver | null>(null);

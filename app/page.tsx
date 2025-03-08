@@ -25,8 +25,13 @@ export default async function Home() {
 
     return (
         <main className="max-w-6xl mx-auto px-4 py-8">
+            <h1 className="text-3xl font-bold mb-6">최근 1주</h1>
             <Suspense fallback={<ArticleListSkeleton/>}>
-                <ArticleList initialArticles={initialArticles || []}/>
+                <ArticleList 
+                    initialArticles={initialArticles || []}
+                    useWeeklyFilter={true}  // 1주일 필터 적용
+                    orderByPoints={true}    // 포인트순 정렬 적용
+                />
             </Suspense>
         </main>
     );
