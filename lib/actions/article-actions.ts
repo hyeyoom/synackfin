@@ -111,3 +111,65 @@ export async function upvoteArticle(params: UpvoteArticleParams) {
         return {error: '서버 오류가 발생했습니다.'};
     }
 }
+
+interface UpdateArticleParams {
+    id: number;
+    title: string;
+    url: string | null;
+    content: string;
+    boardType: BoardType;
+}
+
+export async function updateArticle(params: UpdateArticleParams) {
+    try {
+        const supabase = await createSupabaseClientForServer();
+
+        // 현재 로그인한 사용자 정보 가져오기
+        const {data: {user}} = await supabase.auth.getUser();
+
+        if (!user) {
+            return {error: '로그인이 필요합니다.'};
+        }
+
+        // 글 소유자 확인
+        const { data: article } = await supabase
+            .from('user_articles')
+            .select('author_id')
+            .eq('id', params.id)
+            .single();
+
+        if (!article) {
+            return {error: '글을 찾을 수 없습니다.'};
+        }
+
+        if (article.author_id !== user.id) {
+            return {error: '글 수정 권한이 없습니다.'};
+        }
+
+        // 데이터 업데이트
+        const {error} = await supabase
+            .from('user_articles')
+            .update({
+                title: params.title,
+                url: params.url,
+                content: params.content,
+                board_type: params.boardType,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', params.id);
+
+        if (error) {
+            console.error('글 수정 오류:', error);
+            return {error: error.message};
+        }
+
+        // 캐시 무효화
+        revalidatePath('/');
+        revalidatePath(`/articles/${params.id}`);
+
+        return {success: true};
+    } catch (error) {
+        console.error('서버 액션 오류:', error);
+        return {error: '서버 오류가 발생했습니다.'};
+    }
+}

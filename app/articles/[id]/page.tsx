@@ -97,6 +97,10 @@ export default async function ArticlePage({params}: Props) {
     });
     const domain = article.url ? extractDomain(article.url) : null;
 
+    // 현재 로그인한 사용자 정보 가져오기
+    const { data: { user } } = await supabase.auth.getUser();
+    const isAuthor = user && article.author_id === user.id;
+
     return (
         <main className="max-w-6xl mx-auto px-4 py-8">
             <div className="mb-4">
@@ -107,6 +111,17 @@ export default async function ArticlePage({params}: Props) {
 
             <article>
                 <h1 className="text-3xl font-bold mb-2">{article.title}</h1>
+
+                {isAuthor && (
+                    <div className="mb-4">
+                        <Link 
+                            href={`/articles/${article.id}/edit`}
+                            className="text-sm bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded"
+                        >
+                            수정하기
+                        </Link>
+                    </div>
+                )}
 
                 <div className="flex items-center gap-1 text-sm text-gray-500 mb-4">
                     <Link 
