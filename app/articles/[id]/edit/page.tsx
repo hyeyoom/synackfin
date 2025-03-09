@@ -187,6 +187,7 @@ export default function EditPage({ params }: EditPageProps) {
                         onSave={handleSave}
                         isSubmitting={isSubmitting}
                         initialValue={content}
+                        buttonText="수정하기"
                     />
                 </div>
             </div>

@@ -13,12 +13,14 @@ interface MarkdownEditorProps {
     initialValue?: string;
     onSave: (content: string) => void;
     isSubmitting?: boolean;
+    buttonText?: string;
 }
 
 export default function MarkdownEditor({
                                            initialValue = '',
                                            onSave,
-                                           isSubmitting = false
+                                           isSubmitting = false,
+                                           buttonText = '저장하기'
                                        }: MarkdownEditorProps) {
     const [content, setContent] = useState(initialValue);
     const [activeTab, setActiveTab] = useState<string>('write');
@@ -52,7 +54,7 @@ export default function MarkdownEditor({
                             size="sm"
                             className="bg-emerald-600 hover:bg-emerald-700 text-white"
                         >
-                            {isSubmitting ? '저장 중...' : '저장하기'}
+                            {isSubmitting ? `${buttonText.replace('하기', '')} 중...` : buttonText}
                         </Button>
                     </div>
                 </div>
