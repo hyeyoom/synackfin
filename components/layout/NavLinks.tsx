@@ -26,6 +26,13 @@ export default function NavLinks({ onClick }: NavLinksProps = {}) {
                 articles
             </Link>
             <Link
+                href="/knowledge"
+                onClick={handleClick}
+                className={`hover:text-emerald-600 dark:hover:text-emerald-400 ${isActive('/articles')}`}
+            >
+                knowledge
+            </Link>
+            <Link
                 href="/community"
                 onClick={handleClick}
                 className={`hover:text-emerald-600 dark:hover:text-emerald-400 ${isActive('/community')}`}

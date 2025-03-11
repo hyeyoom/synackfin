@@ -24,12 +24,12 @@ export default function WritePage() {
         const checkProfile = async () => {
             try {
                 const result = await checkUserProfile();
-                
+
                 if (result.error) {
                     setError(result.error);
                     return;
                 }
-                
+
                 // 프로필이 없으면 프로필 페이지로 리다이렉트
                 if (!result.hasProfile) {
                     router.push('/profile?reason=write&redirect=/write');
@@ -42,7 +42,7 @@ export default function WritePage() {
                 setIsLoading(false);
             }
         };
-        
+
         checkProfile();
     }, [router]);
 
@@ -114,6 +114,7 @@ export default function WritePage() {
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="articles" className="cursor-pointer">기술 아티클</SelectItem>
+                            <SelectItem value="knowledge" className="cursor-pointer">지식</SelectItem>
                             <SelectItem value="community" className="cursor-pointer">커뮤니티</SelectItem>
                         </SelectContent>
                     </Select>

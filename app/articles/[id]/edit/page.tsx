@@ -154,6 +154,7 @@ export default function EditPage({ params }: EditPageProps) {
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="articles" className="cursor-pointer">기술 아티클</SelectItem>
+                            <SelectItem value="knowledge" className="cursor-pointer">지식</SelectItem>
                             <SelectItem value="community" className="cursor-pointer">커뮤니티</SelectItem>
                         </SelectContent>
                     </Select>
