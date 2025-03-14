@@ -9,7 +9,7 @@ export default async function Home() {
 
     // 1주일 전 날짜 계산
     const oneWeekAgo = new Date();
-    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 30);
 
     const {data: initialArticles} = await supabase
         .from('user_articles')
@@ -17,7 +17,6 @@ export default async function Home() {
             *,
             user_profiles!user_articles_author_id_fkey(name)
         `)
-        .eq('board_type', 'articles')
         .gte('created_at', oneWeekAgo.toISOString())
         .order('points', {ascending: false})
         .order('created_at', {ascending: false})
@@ -25,7 +24,7 @@ export default async function Home() {
 
     return (
         <main className="max-w-6xl mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold mb-6">최근 1주</h1>
+            <h1 className="text-3xl font-bold mb-6">최근 30일</h1>
             <Suspense fallback={<ArticleListSkeleton/>}>
                 <ArticleList 
                     initialArticles={initialArticles || []}
