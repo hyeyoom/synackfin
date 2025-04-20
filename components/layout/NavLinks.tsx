@@ -19,9 +19,9 @@ export default function NavLinks({ onClick }: NavLinksProps = {}) {
     return (
         <div className="flex flex-col md:flex-row gap-4 md:gap-6">
             <Link
-                href="/articles"
+                href="/news"
                 onClick={handleClick}
-                className={`hover:text-emerald-600 dark:hover:text-emerald-400 ${isActive('/articles')}`}
+                className={`hover:text-emerald-600 dark:hover:text-emerald-400 ${isActive('/news')}`}
             >
                 news
             </Link>
