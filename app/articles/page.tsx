@@ -20,10 +20,10 @@ export default async function ArticlesPage() {
 
     return (
         <main className="max-w-6xl mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold mb-6">기술 아티클</h1>
+            <h1 className="text-3xl font-bold mb-6">Engineering News</h1>
             <Suspense fallback={<ArticleListSkeleton/>}>
-                <ArticleList 
-                    initialArticles={initialArticles || []} 
+                <ArticleList
+                    initialArticles={initialArticles || []}
                     boardType="articles"
                     useWeeklyFilter={false}  // 1주일 필터 미적용
                     orderByPoints={false}    // 포인트순 정렬 미적용
@@ -31,4 +31,4 @@ export default async function ArticlesPage() {
             </Suspense>
         </main>
     );
-} 
+}

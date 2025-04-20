@@ -113,7 +113,7 @@ export default function WritePage() {
                             <SelectValue placeholder="게시판을 선택하세요"/>
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="articles" className="cursor-pointer">기술 아티클</SelectItem>
+                            <SelectItem value="articles" className="cursor-pointer">뉴스</SelectItem>
                             <SelectItem value="knowledge" className="cursor-pointer">지식</SelectItem>
                             <SelectItem value="community" className="cursor-pointer">커뮤니티</SelectItem>
                         </SelectContent>
