@@ -1,7 +1,7 @@
 import ArticleList from '@/components/articles/ArticleList';
 import {createSupabaseClientForServer} from '@/lib/utils/supabase/server';
 import {Suspense} from 'react';
-import { ArticleWithProfile } from '@/types/database';
+import {ArticleWithProfile} from '@/types/database';
 
 export default async function Home() {
     // 초기 데이터를 서버에서 가져옴
@@ -9,7 +9,7 @@ export default async function Home() {
 
     // 1주일 전 날짜 계산
     const oneWeekAgo = new Date();
-    oneWeekAgo.setDate(oneWeekAgo.getDate() - 30);
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 90);
 
     const {data: initialArticles} = await supabase
         .from('user_articles')
@@ -24,9 +24,9 @@ export default async function Home() {
 
     return (
         <main className="max-w-6xl mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold mb-6">최근 30일</h1>
+            <h1 className="text-3xl font-bold mb-6">최근 3달</h1>
             <Suspense fallback={<ArticleListSkeleton/>}>
-                <ArticleList 
+                <ArticleList
                     initialArticles={initialArticles || []}
                     useWeeklyFilter={true}  // 1주일 필터 적용
                     orderByPoints={true}    // 포인트순 정렬 적용
